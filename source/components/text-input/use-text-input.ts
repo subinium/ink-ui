@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
-import {useInput} from 'ink';
+import {useInput, useCursor} from 'ink';
 import chalk from 'chalk';
+import stringWidth from 'string-width';
 import {type TextInputState} from './use-text-input-state.js';
 
 export type UseTextInputProps = {
@@ -20,6 +21,14 @@ export type UseTextInputProps = {
 	 * Text to display when input is empty.
 	 */
 	placeholder?: string;
+
+	/**
+	 * Row position of the text input relative to Ink's output origin.
+	 * Used to position the real terminal cursor for IME (Input Method Editor) support.
+	 * When set, CJK (Korean, Japanese, Chinese) composition windows appear
+	 * at the correct position instead of the bottom-left corner.
+	 */
+	cursorRow?: number;
 };
 
 export type UseTextInputResult = {
@@ -35,7 +44,19 @@ export const useTextInput = ({
 	isDisabled = false,
 	state,
 	placeholder = '',
+	cursorRow,
 }: UseTextInputProps): UseTextInputResult => {
+	const {setCursorPosition} = useCursor();
+
+	// Position the real terminal cursor for IME composition support.
+	// This allows CJK input method windows to appear at the correct location.
+	if (!isDisabled && cursorRow !== undefined) {
+		const textBeforeCursor = state.value.slice(0, state.cursorOffset);
+		setCursorPosition({x: stringWidth(textBeforeCursor), y: cursorRow});
+	} else {
+		setCursorPosition(undefined);
+	}
+
 	const renderedPlaceholder = useMemo(() => {
 		if (isDisabled) {
 			return placeholder ? chalk.dim(placeholder) : '';
