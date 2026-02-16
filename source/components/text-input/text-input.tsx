@@ -39,12 +39,16 @@ export type TextInputProps = {
 	readonly onSubmit?: (value: string) => void;
 
 	/**
-	 * Row position of the text input relative to Ink's output origin.
+	 * Starting position of the text input relative to Ink's output origin.
 	 * Used to position the real terminal cursor for IME (Input Method Editor) support.
 	 * When set, CJK (Korean, Japanese, Chinese) composition windows appear
 	 * at the correct position instead of the bottom-left corner.
+	 *
+	 * - `y` (required): row where the text input is rendered.
+	 * - `x` (optional, default `0`): column where the text starts, useful when
+	 *   there is a label or prompt rendered before the input on the same line.
 	 */
-	readonly cursorRow?: number;
+	readonly cursorStart?: {readonly x?: number; readonly y: number};
 };
 
 export function TextInput({
@@ -54,7 +58,7 @@ export function TextInput({
 	suggestions,
 	onChange,
 	onSubmit,
-	cursorRow,
+	cursorStart,
 }: TextInputProps) {
 	const state = useTextInputState({
 		defaultValue,
@@ -67,7 +71,7 @@ export function TextInput({
 		isDisabled,
 		placeholder,
 		state,
-		cursorRow,
+		cursorStart,
 	});
 
 	const {styles} = useComponentTheme<Theme>('TextInput');

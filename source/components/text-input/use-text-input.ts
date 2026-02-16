@@ -23,12 +23,16 @@ export type UseTextInputProps = {
 	placeholder?: string;
 
 	/**
-	 * Row position of the text input relative to Ink's output origin.
+	 * Starting position of the text input relative to Ink's output origin.
 	 * Used to position the real terminal cursor for IME (Input Method Editor) support.
 	 * When set, CJK (Korean, Japanese, Chinese) composition windows appear
 	 * at the correct position instead of the bottom-left corner.
+	 *
+	 * - `y` (required): row where the text input is rendered.
+	 * - `x` (optional, default `0`): column where the text starts, useful when
+	 *   there is a label or prompt rendered before the input on the same line.
 	 */
-	cursorRow?: number;
+	cursorStart?: {readonly x?: number; readonly y: number};
 };
 
 export type UseTextInputResult = {
@@ -44,15 +48,18 @@ export const useTextInput = ({
 	isDisabled = false,
 	state,
 	placeholder = '',
-	cursorRow,
+	cursorStart,
 }: UseTextInputProps): UseTextInputResult => {
 	const {setCursorPosition} = useCursor();
 
 	// Position the real terminal cursor for IME composition support.
 	// This allows CJK input method windows to appear at the correct location.
-	if (!isDisabled && cursorRow !== undefined) {
+	if (!isDisabled && cursorStart !== undefined) {
 		const textBeforeCursor = state.value.slice(0, state.cursorOffset);
-		setCursorPosition({x: stringWidth(textBeforeCursor), y: cursorRow});
+		setCursorPosition({
+			x: (cursorStart.x ?? 0) + stringWidth(textBeforeCursor),
+			y: cursorStart.y,
+		});
 	} else {
 		setCursorPosition(undefined);
 	}
